@@ -1,6 +1,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Plasma-6.6-blue?style=for-the-badge&logo=kde&logoColor=white" alt="Plasma 6.6">
   <img src="https://img.shields.io/badge/Qt-6-green?style=for-the-badge&logo=qt&logoColor=white" alt="Qt6">
+  <img src="https://img.shields.io/badge/Docker-Monitored-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
   <img src="https://img.shields.io/badge/Platform-Linux-yellow?style=for-the-badge&logo=linux&logoColor=white" alt="Linux">
   <img src="https://img.shields.io/badge/License-GPL--3.0-purple?style=for-the-badge" alt="GPL-3.0">
 </p>
@@ -8,51 +9,87 @@
 <h1 align="center">🐳 OpsDash</h1>
 
 <p align="center">
-  <strong>A KDE Plasma 6 panel widget for monitoring active Docker containers in real-time.</strong>
+  <strong>KDE Plasma 6 panel widget for real-time Docker container monitoring.</strong>
 </p>
 
 <p align="center">
-  Displays a live container count in your top panel with a popup that lists all running containers and lets you open their logs in Konsole with a single click.
+  Live container count in the panel • Rich popup with CPU, memory, network & uptime stats<br>
+  Per-container actions • Search & sort • Configurable appearance • Wayland compatible
 </p>
 
 ---
 
 ## ✨ Features
 
-- **Live container count** displayed directly in the Plasma panel next to a server icon
-- **Dynamic container list** — popup shows all currently running containers, refreshed automatically
-- **One-click logs** — click the terminal icon next to any container to open `docker logs --tail 50 -f` in Konsole
-- **Green status indicator** — visual "Local Engine: Running" status with live container count
-- **Configurable refresh interval** — change how often the widget polls Docker (default: 10 seconds)
-- **Right-click Configure** — standard Plasma configuration dialog for all settings
-- **Wayland compatible** — works correctly on Plasma 6 Wayland sessions
-- **Zero dependencies beyond Docker** — uses only Plasma 6 built-in QML components
+### Panel
+- **Live container count** — shows `X/Y` (running/total) with Docker whale icon
+- **Status-aware colors** — green (all running), orange (partial), red (none running)
+- **Warning badge** — ⚠️ icon appears when some containers are stopped
+- **Rich tooltip** — hover to see aggregate stats: `3/5 up · CPU 12.4% · Mem 1.2 GiB`
+
+### Popup
+- **Status card** — Docker engine status, aggregate CPU/memory bars, image count, bulk actions (Start/Stop All)
+- **Container cards** with:
+  - Status dot + Docker icon + container name + uptime
+  - CPU usage bar + sparkline history chart
+  - Memory usage (used/total)
+  - Network I/O
+  - Port mappings
+  - **Inline action buttons**: ▶ Start, ⏹ Stop, 🔄 Restart, 📟 Logs, 🗑 Remove
+- **State differentiation** — running (green), stopped (red), paused (orange), restarting (yellow)
+- **Search** — filter containers by name in real-time
+- **Sort** — by Name, State, CPU, or Memory (green highlight on active sort)
+- **Show all / running only** toggle
+
+### Configuration
+- Refresh interval (1–60 seconds)
+- Show all containers or running only
+- Enable/disable notifications (container start/stop alerts via `notify-send`)
+- Panel appearance: icon size, font size, font color
+- Popup appearance: width, height, card font size, card font color
+- Border thickness (0–5 px) — card and status card outlines
+- State-based outline colors (green/orange/red depending on container health)
+
+### Notifications
+- Container started → desktop notification
+- Container stopped → desktop notification (with warning icon)
+- Container removed → desktop notification
+- Toggleable from config
+
+---
 
 ## 📸 Preview
 
 ```
-┌─────────────────────────────────────────────┐
-│  Panel:   [🐳 whale]  2                    │
-├─────────────────────────────────────────────┤
-│                                             │
-│  OpsDash Control Center                     │
-│                                             │
-│  ┌───────────────────────────────────────┐  │
-│  │ ✅ Local Engine: Running   Containers: 2│ │
-│  └───────────────────────────────────────┘  │
-│                                             │
-│  ─────────────────────────────────────────  │
-│                                             │
-│  Running Containers                         │
-│                                             │
-│  ┌───────────────────────────────────────┐  │
-│  │ ⚙ test-node                    [🐳]  │  │
-│  └───────────────────────────────────────┘  │
-│  ┌───────────────────────────────────────┐  │
-│  │ ⚙ sentinel-agent               [🐳]  │  │
-│  └───────────────────────────────────────┘  │
-│                                             │
-└─────────────────────────────────────────────┘
+┌─ Panel ──────────────────────────────────────┐
+│  [🐳]  3/5  ⚠️                               │
+└───────────────────────────────────────────────┘
+
+┌─ Popup ──────────────────────────────────────┐
+│  OpsDash Control Center                       │
+│                                               │
+│  ┌─ Status ─────────────────────────────────┐ │
+│  │ ✅ Engine: Running   3/5 up  │ 12 images │ │
+│  │ CPU [████░░░░░░] 12.4%                  │ │
+│  │ Mem [██████░░░░] 1.2 GiB                │ │
+│  │ [Start All]  [Stop All]                 │ │
+│  └──────────────────────────────────────────┘ │
+│                                               │
+│  🔍 [Search containers...        ]           │
+│  [Name] [State] [CPU] [Mem]                  │
+│                                               │
+│  ┌─ nginx-proxy ──────────────────────────┐  │
+│  │ 🟢 🐳 nginx-proxy  Up 3d 2h           │  │
+│  │    [▶][⏹][🔄][📟][🗑]                  │  │
+│  │ CPU [███░░░] 4.2%  ╱╲╱╲  Mem: 128 MiB │  │
+│  │ Net: ↑12 MB ↓45 MB  Ports: 80, 443    │  │
+│  └────────────────────────────────────────┘  │
+│                                               │
+│  ┌─ postgres-db ──────────────────────────┐  │
+│  │ 🔴 🐳 postgres-db  Exited (0) 2h ago  │  │
+│  │    [▶][🗑]                              │  │
+│  └────────────────────────────────────────┘  │
+└───────────────────────────────────────────────┘
 ```
 
 ## 📋 Requirements
@@ -61,17 +98,18 @@
 |---|---|
 | KDE Plasma | **6.0+** (tested on 6.6.5) |
 | Qt | **6.x** |
-| Docker | Any version with `docker ps` CLI |
+| Docker | Any version with `docker ps` / `docker stats` CLI |
 | Konsole | For the "Open Logs" feature |
+| `notify-send` | For desktop notifications (optional) |
 | Linux | Any distro running Plasma 6 |
 
 Tested on:
 - **EndeavourOS (Arch Linux)** — Plasma 6.6.5, Wayland
-- Should work on any Plasma 6 distribution (KDE Neon, Fedora Kinoite, openSUSE Tumbleweed, NixOS, etc.)
+- Should work on KDE Neon, Fedora Kinoite, openSUSE Tumbleweed, NixOS, etc.
 
 ## 🚀 Installation
 
-### Option 1: Manual Install (Recommended)
+### Option 1: Manual Install
 
 ```bash
 # Clone the repository
@@ -84,10 +122,7 @@ cp -r opsdash-plasmoid ~/.local/share/plasma/plasmoids/com.ops.dash
 kbuildsycoca6
 
 # Restart Plasma shell
-# On Wayland:
 systemctl --user restart plasma-plasmashell.service
-# On X11:
-# qdbus org.kde.Plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript 'Engine.restart()'
 ```
 
 ### Option 2: One-Liner
@@ -106,16 +141,50 @@ git clone https://github.com/harunkrl/opsdash-plasmoid.git \
 3. Search for **"OpsDash"**
 4. **Drag** it to your panel
 
-That's it — the container count should appear immediately.
+Container count appears immediately.
 
 ## ⚙️ Configuration
 
-Right-click the widget in the panel → **Configure OpsDash…**
+Right-click the widget → **Configure OpsDash…**
+
+### Docker Settings
 
 | Setting | Type | Default | Description |
 |---|---|---|---|
-| **Refresh Interval** | SpinBox | `10000` ms (10s) | How often to poll `docker ps` for updates. Minimum: 1000 ms |
-| **Target Container Name** | TextField | `test-node` | *(Reserved for future use)* Default container for quick-log actions |
+| **Refresh Interval** | SpinBox | `10000` ms | How often to poll Docker (1000–60000 ms) |
+| **Target Container** | TextField | — | Reserved for future quick-log feature |
+
+### Behavior
+
+| Setting | Type | Default | Description |
+|---|---|---|---|
+| **Enable Notifications** | CheckBox | On | Desktop alerts when containers start/stop |
+| **Show All Containers** | CheckBox | On | Show stopped containers too (not just running) |
+
+### Panel Appearance
+
+| Setting | Type | Default | Description |
+|---|---|---|---|
+| **Icon Size** | SpinBox | `22` px | Docker whale icon size in panel |
+| **Font Size** | SpinBox | `12` px | Container count text size (`0` = theme default) |
+| **Font Color** | TextField | auto | Override color (hex `#ff0000` or name `red`). Empty = auto mode |
+
+### Popup Appearance
+
+| Setting | Type | Default | Description |
+|---|---|---|---|
+| **Width** | SpinBox | `38` GU | Popup width in grid units |
+| **Height** | SpinBox | `28` GU | Popup height in grid units |
+| **Card Font Size** | SpinBox | `11` px | Container card text size (`0` = theme default) |
+| **Card Font Color** | TextField | — | Override card text color. Empty = theme default |
+
+### Borders
+
+| Setting | Type | Default | Description |
+|---|---|---|---|
+| **Thickness** | SpinBox | `1` px | Card border thickness (`0` = no border, `1–5` = increasing) |
+
+> **Note:** Border colors are state-based and automatically match container status (green/orange/red).
 
 Changes take effect immediately — no restart required.
 
@@ -126,12 +195,23 @@ Changes take effect immediately — no restart required.
 ```
 Timer (configurable interval)
   │
-  ├─► docker ps -q | wc -l
-  │     └─► Container count → Panel label + Status card + Tooltip
+  ├─► docker ps -a --format '{{.Names}}|{{.State}}|{{.Status}}|{{.Ports}}'
+  │     └─► Container list with states, uptime, ports
+  │           └─► Panel count + Status card + Container cards + Notifications
   │
-  └─► docker ps --format '{{.Names}}'
-        └─► Container names → ListView in popup
-              └─► Click [🖥️] → bash -c "konsole -e bash -c 'docker logs ...'"
+  ├─► docker stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|...'
+  │     └─► Per-container CPU, memory, network stats
+  │           └─► Usage bars + Sparkline charts + Aggregate totals
+  │
+  └─► echo "$(docker images -q | wc -l)|$(docker ps -a -q | wc -l)"
+        └─► System overview: image count, total containers
+
+Actions:
+  ▶ Start    → docker start <name>
+  ⏹ Stop     → docker stop <name>
+  🔄 Restart  → docker restart <name>
+  📟 Logs    → konsole -e docker logs --tail 50 -f <name>
+  🗑 Remove  → docker rm <name>
 ```
 
 ### Technical Stack
@@ -141,29 +221,36 @@ Timer (configurable interval)
 | Root element | `PlasmoidItem` (Plasma 6 applet) |
 | Command execution | `Plasma5Support.DataSource` (engine: `"executable"`) |
 | UI framework | `Kirigami` + `PlasmaComponents3` + `PlasmaExtras` |
-| Configuration | KConfig XML + `org.kde.plasma.configuration` |
-| Icon rendering | `Kirigami.Icon` with freedesktop standard icon names |
+| Configuration | KConfig XML (`main.xml`) + `cfg_` property aliases |
+| Icon rendering | `Kirigami.Icon` with bundled SVG + freedesktop icons |
+| Notifications | `notify-send` via `Plasma5Support.DataSource` |
+| History charts | Inline `Sparkline` component (QML Canvas) |
+| Usage bars | Inline `UsageBar` component (QML Rectangle) |
 
 ### File Structure
 
 ```
 com.ops.dash/
-├── metadata.json                      # Plasma 6 package metadata
+├── metadata.json                          # Plasma 6 package metadata
+├── README.md                              # This file
+├── .gitignore
 └── contents/
     ├── config/
-    │   ├── main.xml                   # KConfig schema (settings definitions)
-    │   └── config.qml                 # Config tab registration
+    │   ├── main.xml                       # KConfig schema (all settings)
+    │   └── config.qml                     # Config tab registration
     └── ui/
-        ├── main.qml                   # Main widget (panel view + popup)
-        └── config/
-            └── ConfigGeneral.qml      # Settings dialog UI
+        ├── main.qml                       # Main widget (panel + popup + data sources)
+        ├── config/
+        │   └── ConfigGeneral.qml          # Settings dialog UI
+        └── icons/
+            └── docker.svg                 # Bundled Docker whale logo
 ```
 
 ## 🔧 Troubleshooting
 
-### Widget shows "Unsupported widget" when adding
+### Widget shows "Unsupported widget"
 
-Make sure you have Plasma **6.0 or newer**. This widget does NOT work on Plasma 5.
+This widget requires Plasma **6.0+**. It does NOT work on Plasma 5.
 
 ```bash
 plasmashell --version
@@ -171,32 +258,29 @@ plasmashell --version
 
 ### Container count stays at 0
 
-Ensure your user can run Docker commands without sudo:
+Ensure your user can run Docker without sudo:
 
 ```bash
 docker ps -q | wc -l
 ```
 
-If this fails, add your user to the `docker` group:
+If it fails, add your user to the `docker` group:
 
 ```bash
 sudo usermod -aG docker $USER
-# Log out and back in for changes to take effect
+# Log out and back in
 ```
+
+### Stats show 0% CPU / empty memory
+
+`docker stats` requires running containers. Stopped containers will show no stats — this is expected.
 
 ### Widget doesn't appear after installation
 
 ```bash
-# Rebuild the service cache
 kbuildsycoca6 --noincremental
-
-# Restart Plasma
 systemctl --user restart plasma-plasmashell.service
 ```
-
-### Konsole opens but is blank
-
-This was a known issue with nested command quoting under Wayland. It is fixed in the current version. If you experience it, make sure you have the latest `main.qml` from this repository.
 
 ### Changes not reflected after editing files
 
@@ -206,37 +290,62 @@ Always restart Plasma after modifying widget files:
 systemctl --user restart plasma-plasmashell.service
 ```
 
+### Debug with plasmoidviewer
+
+```bash
+plasmoidviewer -a ~/.local/share/plasma/plasmoids/com.ops.dash
+```
+
+This opens the widget in a standalone window and prints QML errors to the terminal.
+
+### Known Plasma 6 QML Gotchas
+
+If you're developing custom Plasma 6 widgets, watch out for these:
+
+| Issue | Fix |
+|---|---|
+| `metadata.desktop` | Use `metadata.json` in Plasma 6 |
+| `PlasmaCore.DataSource` | Use `Plasma5Support.DataSource` |
+| `Item` as root | Use `PlasmoidItem` |
+| `Plasmoid.toolTipSubText` | Set tooltip properties directly on `PlasmoidItem` |
+| `font.bold` + `font: Theme.smallFont` | Can't mix — use `font.weight: Font.Bold` + `font.pixelSize` |
+| `icon.name` on ToolButton | Not available — use `Kirigami.Icon` instead |
+| `showHoverFeedback` on cards | Does not exist in Plasma 6 Kirigami |
+| `QQC2.MenuItem` without namespace | Must use dot notation: `QQC2.MenuItem` |
+| `rc={}` in JS | Returns `NaN` — initialize with `rc=0` |
+
 ## 🗑️ Uninstallation
 
 ```bash
-# Remove the widget
 rm -rf ~/.local/share/plasma/plasmoids/com.ops.dash
-
-# Rebuild cache and restart
 kbuildsycoca6 && systemctl --user restart plasma-plasmashell.service
 ```
 
+## 🗺️ Roadmap
+
+- [ ] Health check status (healthy/unhealthy)
+- [ ] Docker Compose project grouping
+- [ ] Log preview (last 5 lines in popup)
+- [ ] Custom color themes / presets
+- [ ] Multiple Docker host support (remote SSH)
+
 ## 🤝 Contributing
 
-Contributions are welcome! To contribute:
+Contributions are welcome!
 
 1. Fork this repository
 2. Create a feature branch: `git checkout -b feature/my-feature`
 3. Commit your changes: `git commit -m "Add my feature"`
-4. Push to the branch: `git push origin feature/my-feature`
+4. Push: `git push origin feature/my-feature`
 5. Open a Pull Request
 
 ### Development Setup
 
 ```bash
-# Clone directly into the plasmoids directory for live editing
 git clone https://github.com/harunkrl/opsdash-plasmoid.git \
   ~/.local/share/plasma/plasmoids/com.ops.dash
 
-# Test with plasmoidviewer (shows QML errors in terminal)
-plasmoidviewer -a ~/.local/share/plasma/plasmoids/com.ops.dash
-
-# After each edit, restart Plasma
+# Live editing — after each change:
 systemctl --user restart plasma-plasmashell.service
 ```
 

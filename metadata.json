@@ -4,7 +4,7 @@
         "Id": "com.ops.dash",
         "Name": "OpsDash",
         "Description": "Displays the number of active Docker containers",
-        "Icon": "network-server",
+        "Icon": "docker",
         "Category": "System Information",
         "Version": "1.0.0",
         "License": "GPL-3.0",

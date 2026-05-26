@@ -13,5 +13,45 @@
       <default>test-node</default>
       <label>Target Docker container name for logs</label>
     </entry>
+    <entry name="enableNotifications" type="Bool">
+      <default>true</default>
+      <label>Enable desktop notifications for container state changes</label>
+    </entry>
+    <entry name="showAllContainers" type="Bool">
+      <default>true</default>
+      <label>Show all containers including stopped ones</label>
+    </entry>
+    <entry name="panelIconSize" type="Int">
+      <default>22</default>
+      <label>Panel icon size in pixels</label>
+    </entry>
+    <entry name="panelFontSize" type="Int">
+      <default>12</default>
+      <label>Panel count text font size in pixels</label>
+    </entry>
+    <entry name="popupWidth" type="Int">
+      <default>38</default>
+      <label>Popup width in grid units</label>
+    </entry>
+    <entry name="popupHeight" type="Int">
+      <default>28</default>
+      <label>Popup height in grid units</label>
+    </entry>
+    <entry name="popupCardFontSize" type="Int">
+      <default>11</default>
+      <label>Container card text font size in pixels (0 = auto)</label>
+    </entry>
+    <entry name="panelFontColor" type="String">
+      <default></default>
+      <label>Panel count text color (empty = auto based on status)</label>
+    </entry>
+    <entry name="popupCardFontColor" type="String">
+      <default></default>
+      <label>Container card text color (empty = theme default)</label>
+    </entry>
+    <entry name="borderThickness" type="Int">
+      <default>1</default>
+      <label>Card and status card border thickness in pixels</label>
+    </entry>
   </group>
 </kcfg>

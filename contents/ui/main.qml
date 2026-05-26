@@ -161,12 +161,20 @@ PlasmoidItem {
     // PANEL STRIP (with Feature 9: warning badge)
     // ═════════════════════════════════════════════════════════════════════
     compactRepresentation: MouseArea {
-        anchors.fill: parent; hoverEnabled: true
+        hoverEnabled: true
+        implicitWidth: row.width + Kirigami.Units.smallSpacing * 2
+        implicitHeight: row.height
+        Layout.preferredWidth: implicitWidth
+        Layout.preferredHeight: implicitHeight
+        Layout.minimumWidth: implicitWidth
+        Layout.minimumHeight: implicitHeight
         property bool we: false
         onPressed: mouse => { we = root.expanded; }
         onClicked: mouse => { root.expanded = !we; }
         RowLayout {
-            anchors.fill: parent; spacing: Kirigami.Units.smallSpacing
+            id: row
+            anchors.centerIn: parent
+            spacing: Kirigami.Units.smallSpacing
             Kirigami.Icon {
                 source: Qt.resolvedUrl("icons/docker.svg")
                 Layout.preferredHeight: Plasmoid.configuration.panelIconSize

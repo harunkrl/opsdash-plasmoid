@@ -60,6 +60,13 @@
 
 ## 📸 Preview
 
+<p align="center">
+  <img src="preview.png" alt="OpsDash Popup Preview" width="500">
+</p>
+
+<details>
+<summary>📐 ASCII Layout Diagram</summary>
+
 ```
 ┌─ Panel ──────────────────────────────────────┐
 │  [🐳]  3/5  ⚠️                               │
@@ -81,7 +88,7 @@
 │  ┌─ nginx-proxy ──────────────────────────┐  │
 │  │ 🟢 🐳 nginx-proxy  Up 3d 2h           │  │
 │  │    [▶][⏹][🔄][📟][🗑]                  │  │
-│  │ CPU [███░░░] 4.2%  ╱╲╱╲  Mem: 128 MiB │  │
+│  │ CPU [███░░░░] 4.2%  ╱╲╱╲  Mem: 128 MiB │  │
 │  │ Net: ↑12 MB ↓45 MB  Ports: 80, 443    │  │
 │  └────────────────────────────────────────┘  │
 │                                               │
@@ -91,6 +98,8 @@
 │  └────────────────────────────────────────┘  │
 └───────────────────────────────────────────────┘
 ```
+
+</details>
 
 ## 📋 Requirements
 

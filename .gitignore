@@ -3,3 +3,7 @@
 *.swo
 .DS_Store
 .directory
+
+# Test and Log Files
+*.log
+test_*.qml

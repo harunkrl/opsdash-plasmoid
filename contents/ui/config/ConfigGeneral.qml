@@ -20,6 +20,8 @@ ColumnLayout {
     property alias cfg_panelFontColor: panelColorField.text
     property alias cfg_popupCardFontColor: cardColorField.text
     property alias cfg_borderThickness: borderSpin.value
+    property alias cfg_panelIconName: panelIconField.text
+    property alias cfg_cardIconName: cardIconField.text
 
     spacing: Kirigami.Units.largeSpacing
 
@@ -78,6 +80,23 @@ ColumnLayout {
     }
     RowLayout {
         Layout.fillWidth: true
+        PlasmaComponents3.Label { text: i18n("Custom Icon:"); font: Kirigami.Theme.smallFont; Layout.alignment: Qt.AlignVCenter }
+        QQC2.TextField {
+            id: panelIconField; Layout.fillWidth: true; placeholderText: i18n("Default: docker whale")
+            font: Kirigami.Theme.smallFont
+        }
+        Kirigami.Icon {
+            Layout.preferredHeight: 24; Layout.preferredWidth: 24
+            source: panelIconField.text.length > 0 ? panelIconField.text : Qt.resolvedUrl("../../ui/icons/docker.svg")
+            Layout.alignment: Qt.AlignVCenter
+        }
+    }
+    PlasmaComponents3.Label {
+        text: i18n("Leave empty for default docker icon. You can use system icon names (e.g. \"docker\", \"application-x-executable\") or file paths (e.g. \"/path/to/icon.svg\")")
+        font: Kirigami.Theme.smallFont; opacity: 0.5; Layout.fillWidth: true; wrapMode: Text.WordWrap
+    }
+    RowLayout {
+        Layout.fillWidth: true
         PlasmaComponents3.Label { text: i18n("Font:"); font: Kirigami.Theme.smallFont; Layout.alignment: Qt.AlignVCenter }
         QQC2.SpinBox {
             id: panelFontSpin; from: 8; to: 24; stepSize: 1; editable: true; Layout.fillWidth: true
@@ -119,6 +138,23 @@ ColumnLayout {
             id: popupHeightSpin; from: 16; to: 50; stepSize: 2; editable: true; Layout.fillWidth: true
             textFromValue: function(v) { return v + " GU" }; valueFromText: function(t) { return parseInt(t) }
         }
+    }
+    RowLayout {
+        Layout.fillWidth: true
+        PlasmaComponents3.Label { text: i18n("Card Icon:"); font: Kirigami.Theme.smallFont; Layout.alignment: Qt.AlignVCenter }
+        QQC2.TextField {
+            id: cardIconField; Layout.fillWidth: true; placeholderText: i18n("Default: docker whale")
+            font: Kirigami.Theme.smallFont
+        }
+        Kirigami.Icon {
+            Layout.preferredHeight: 24; Layout.preferredWidth: 24
+            source: cardIconField.text.length > 0 ? cardIconField.text : Qt.resolvedUrl("../../ui/icons/docker.svg")
+            Layout.alignment: Qt.AlignVCenter
+        }
+    }
+    PlasmaComponents3.Label {
+        text: i18n("Container card icon. Same rules as panel icon apply.")
+        font: Kirigami.Theme.smallFont; opacity: 0.5; Layout.fillWidth: true; wrapMode: Text.WordWrap
     }
     RowLayout {
         Layout.fillWidth: true

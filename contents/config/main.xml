@@ -53,5 +53,13 @@
       <default>1</default>
       <label>Card and status card border thickness in pixels</label>
     </entry>
+    <entry name="panelIconName" type="String">
+      <default></default>
+      <label>Custom panel icon name or path (empty = default docker.svg)</label>
+    </entry>
+    <entry name="cardIconName" type="String">
+      <default></default>
+      <label>Custom container card icon name or path (empty = default docker.svg)</label>
+    </entry>
   </group>
 </kcfg>

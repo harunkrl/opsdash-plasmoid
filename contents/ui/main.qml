@@ -24,6 +24,10 @@ PlasmoidItem {
     property string searchFilter: ""
     property int sortMode: 0
     readonly property int historySize: 30
+    readonly property string defaultIcon: Qt.resolvedUrl("icons/docker.svg")
+    readonly property string resolvedPanelIcon: Plasmoid.configuration.panelIconName && Plasmoid.configuration.panelIconName.length > 0 ? Plasmoid.configuration.panelIconName : defaultIcon
+    readonly property string resolvedCardIcon: Plasmoid.configuration.cardIconName && Plasmoid.configuration.cardIconName.length > 0 ? Plasmoid.configuration.cardIconName : defaultIcon
+
     readonly property color sepColor: Kirigami.ColorUtils.tintWithAlpha(
         Kirigami.Theme.backgroundColor, Kirigami.Theme.textColor, 0.2)
 
@@ -176,7 +180,7 @@ PlasmoidItem {
             anchors.centerIn: parent
             spacing: Kirigami.Units.smallSpacing
             Kirigami.Icon {
-                source: Qt.resolvedUrl("icons/docker.svg")
+                source: root.resolvedPanelIcon
                 Layout.preferredHeight: Plasmoid.configuration.panelIconSize
                 Layout.preferredWidth: Plasmoid.configuration.panelIconSize
                 Layout.alignment: Qt.AlignVCenter
@@ -270,9 +274,43 @@ PlasmoidItem {
                     RowLayout {
                         Layout.fillWidth:true;spacing:Kirigami.Units.smallSpacing
                         PlasmaComponents3.Label{text:i18n("Quick:");font:Kirigami.Theme.smallFont;opacity:0.4}
-                        Kirigami.Icon{source:"media-playback-start";Layout.preferredHeight:Kirigami.Units.iconSizes.tiny;Layout.preferredWidth:Kirigami.Units.iconSizes.tiny;opacity:0.5;MouseArea{anchors.fill:parent;cursorShape:Qt.PointingHandCursor;onClicked:actionSource.connectSource("bash -c \"docker start $(docker ps -a -q -f status=exited -f status=created)\"")} PlasmaComponents3.ToolTip{text:i18n("Start All");delay:Kirigami.Units.toolTipDelay}}
-                        Kirigami.Icon{source:"process-stop";Layout.preferredHeight:Kirigami.Units.iconSizes.tiny;Layout.preferredWidth:Kirigami.Units.iconSizes.tiny;opacity:0.5;MouseArea{anchors.fill:parent;cursorShape:Qt.PointingHandCursor;onClicked:actionSource.connectSource("bash -c \"docker stop $(docker ps -q)\"")} PlasmaComponents3.ToolTip{text:i18n("Stop All");delay:Kirigami.Units.toolTipDelay}}
-                        Kirigami.Icon{source:"view-refresh";Layout.preferredHeight:Kirigami.Units.iconSizes.tiny;Layout.preferredWidth:Kirigami.Units.iconSizes.tiny;opacity:0.5;MouseArea{anchors.fill:parent;cursorShape:Qt.PointingHandCursor;onClicked:actionSource.connectSource("bash -c \"docker restart $(docker ps -q)\"")} PlasmaComponents3.ToolTip{text:i18n("Restart All");delay:Kirigami.Units.toolTipDelay}}
+                        // Start All
+                        Kirigami.Icon {
+                            id: qStartBtn
+                            source: qStartBusy.running ? "emblem-checked" : "media-playback-start"
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.tiny; Layout.preferredWidth: Kirigami.Units.iconSizes.tiny
+                            opacity: qStartBusy.running ? 1.0 : 0.5
+                            property bool _busy: false
+                            Timer { id: qStartBusy; interval: 2000; onTriggered: qStartBtn._busy = false }
+                            MouseArea { anchors.fill:parent; cursorShape:Qt.PointingHandCursor
+                                onClicked:{ qStartBusy.start();
+                                    for(var i=0;i<root.containers.length;i++){var c=root.containers[i];if(c.state==="exited"||c.state==="created"||c.state==="paused")actionSource.connectSource("docker start "+c.name)}}}
+                            PlasmaComponents3.ToolTip{text:i18n("Start All");delay:Kirigami.Units.toolTipDelay}
+                        }
+                        // Stop All
+                        Kirigami.Icon {
+                            id: qStopBtn
+                            source: qStopBusy.running ? "emblem-checked" : "process-stop"
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.tiny; Layout.preferredWidth: Kirigami.Units.iconSizes.tiny
+                            opacity: qStopBusy.running ? 1.0 : 0.5
+                            Timer { id: qStopBusy; interval: 2000 }
+                            MouseArea { anchors.fill:parent; cursorShape:Qt.PointingHandCursor
+                                onClicked:{ qStopBusy.start();
+                                    for(var i=0;i<root.containers.length;i++){var c=root.containers[i];if(c.state==="running")actionSource.connectSource("docker stop "+c.name)}}}
+                            PlasmaComponents3.ToolTip{text:i18n("Stop All");delay:Kirigami.Units.toolTipDelay}
+                        }
+                        // Restart All
+                        Kirigami.Icon {
+                            id: qRestartBtn
+                            source: qRestartBusy.running ? "emblem-checked" : "view-refresh"
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.tiny; Layout.preferredWidth: Kirigami.Units.iconSizes.tiny
+                            opacity: qRestartBusy.running ? 1.0 : 0.5
+                            Timer { id: qRestartBusy; interval: 2000 }
+                            MouseArea { anchors.fill:parent; cursorShape:Qt.PointingHandCursor
+                                onClicked:{ qRestartBusy.start();
+                                    for(var i=0;i<root.containers.length;i++){var c=root.containers[i];if(c.state==="running")actionSource.connectSource("docker restart "+c.name)}}}
+                            PlasmaComponents3.ToolTip{text:i18n("Restart All");delay:Kirigami.Units.toolTipDelay}
+                        }
                         Item{Layout.fillWidth:true}
                     }
                 }
@@ -361,7 +399,7 @@ PlasmoidItem {
                             RowLayout {
                                 Layout.fillWidth:true;spacing:Kirigami.Units.smallSpacing
                                 Rectangle{Layout.preferredWidth:4;Layout.fillHeight:true;Layout.topMargin:2;Layout.bottomMargin:2;radius:2;color:stateColor(cs)}
-                                Kirigami.Icon{source:Qt.resolvedUrl("../icons/docker.svg");Layout.preferredHeight:Plasmoid.configuration.popupCardFontSize>0?Plasmoid.configuration.popupCardFontSize*1.45:Kirigami.Units.iconSizes.small;Layout.preferredWidth:Plasmoid.configuration.popupCardFontSize>0?Plasmoid.configuration.popupCardFontSize*1.45:Kirigami.Units.iconSizes.small;Layout.alignment:Qt.AlignVCenter;opacity:run?1.0:0.5}
+                                Kirigami.Icon{source:root.resolvedCardIcon;Layout.preferredHeight:Plasmoid.configuration.popupCardFontSize>0?Plasmoid.configuration.popupCardFontSize*1.45:Kirigami.Units.iconSizes.small;Layout.preferredWidth:Plasmoid.configuration.popupCardFontSize>0?Plasmoid.configuration.popupCardFontSize*1.45:Kirigami.Units.iconSizes.small;Layout.alignment:Qt.AlignVCenter;opacity:run?1.0:0.5}
                                 PlasmaComponents3.Label{text:cn;font.weight:Font.Bold;font.pixelSize:Plasmoid.configuration.popupCardFontSize>0?Plasmoid.configuration.popupCardFontSize:Kirigami.Theme.smallFont.pixelSize;color:Plasmoid.configuration.popupCardFontColor.length>0?Plasmoid.configuration.popupCardFontColor:Kirigami.Theme.textColor;Layout.fillWidth:true;Layout.alignment:Qt.AlignVCenter;elide:Text.ElideRight;opacity:run?1.0:0.6}
                                 PlasmaComponents3.Label{visible:run;text:fmtUptime(cst);font:Kirigami.Theme.smallFont;opacity:0.4;Layout.alignment:Qt.AlignVCenter}
 
@@ -369,44 +407,94 @@ PlasmoidItem {
                                 RowLayout{
                                     spacing:2;Layout.alignment:Qt.AlignVCenter
 
+                                    // Start
                                     Item {
                                         visible: cs==="exited"||cs==="created"||cs==="paused"
                                         width:16; height:16
-                                        Kirigami.Icon{anchors.fill:parent;source:"media-playback-start";opacity:0.5}
-                                        MouseArea{anchors.fill:parent;cursorShape:Qt.PointingHandCursor
-                                            onClicked:actionSource.connectSource("bash -c \"docker start "+cn+"\"")}
+                                        property bool busy: false
+                                        Timer { id: cStartT; interval: 2000; onTriggered: parent.busy = false }
+                                        Kirigami.Icon {
+                                            anchors.fill:parent
+                                            source: parent.busy ? "emblem-checked" : "media-playback-start"
+                                            opacity: parent.busy ? 1.0 : 0.5
+                                            Behavior on scale { NumberAnimation { duration: 150 } }
+                                            scale: parent.busy ? 1.3 : 1.0
+                                        }
+                                        MouseArea { anchors.fill:parent; cursorShape:Qt.PointingHandCursor; enabled:!parent.busy
+                                            onClicked:{ parent.busy=true; cStartT.start();
+                                                actionSource.connectSource("docker start "+cn)}}
                                         PlasmaComponents3.ToolTip{text:i18n("Start");delay:Kirigami.Units.toolTipDelay}
                                     }
 
+                                    // Stop
                                     Item {
                                         visible: run; width:16; height:16
-                                        Kirigami.Icon{anchors.fill:parent;source:"process-stop";opacity:0.5}
-                                        MouseArea{anchors.fill:parent;cursorShape:Qt.PointingHandCursor
-                                            onClicked:actionSource.connectSource("bash -c \"docker stop "+cn+"\"")}
+                                        property bool busy: false
+                                        Timer { id: cStopT; interval: 2000; onTriggered: parent.busy = false }
+                                        Kirigami.Icon {
+                                            anchors.fill:parent
+                                            source: parent.busy ? "emblem-checked" : "process-stop"
+                                            opacity: parent.busy ? 1.0 : 0.5
+                                            Behavior on scale { NumberAnimation { duration: 150 } }
+                                            scale: parent.busy ? 1.3 : 1.0
+                                        }
+                                        MouseArea { anchors.fill:parent; cursorShape:Qt.PointingHandCursor; enabled:!parent.busy
+                                            onClicked:{ parent.busy=true; cStopT.start();
+                                                actionSource.connectSource("docker stop "+cn)}}
                                         PlasmaComponents3.ToolTip{text:i18n("Stop");delay:Kirigami.Units.toolTipDelay}
                                     }
 
+                                    // Restart
                                     Item {
                                         visible: run; width:16; height:16
-                                        Kirigami.Icon{anchors.fill:parent;source:"view-refresh";opacity:0.5}
-                                        MouseArea{anchors.fill:parent;cursorShape:Qt.PointingHandCursor
-                                            onClicked:actionSource.connectSource("bash -c \"docker restart "+cn+"\"")}
+                                        property bool busy: false
+                                        Timer { id: cRestartT; interval: 2000; onTriggered: parent.busy = false }
+                                        Kirigami.Icon {
+                                            anchors.fill:parent
+                                            source: parent.busy ? "emblem-checked" : "view-refresh"
+                                            opacity: parent.busy ? 1.0 : 0.5
+                                            Behavior on scale { NumberAnimation { duration: 150 } }
+                                            scale: parent.busy ? 1.3 : 1.0
+                                        }
+                                        MouseArea { anchors.fill:parent; cursorShape:Qt.PointingHandCursor; enabled:!parent.busy
+                                            onClicked:{ parent.busy=true; cRestartT.start();
+                                                actionSource.connectSource("docker restart "+cn)}}
                                         PlasmaComponents3.ToolTip{text:i18n("Restart");delay:Kirigami.Units.toolTipDelay}
                                     }
 
+                                    // Logs
                                     Item {
                                         visible: run; width:16; height:16
-                                        Kirigami.Icon{anchors.fill:parent;source:"utilities-terminal";opacity:0.5}
-                                        MouseArea{anchors.fill:parent;cursorShape:Qt.PointingHandCursor
-                                            onClicked:actionSource.connectSource("bash -c \"konsole -e bash -c 'docker logs --tail 50 -f "+cn+"'\"")}
+                                        property bool busy: false
+                                        Timer { id: cLogsT; interval: 1500; onTriggered: parent.busy = false }
+                                        Kirigami.Icon {
+                                            anchors.fill:parent
+                                            source: parent.busy ? "emblem-checked" : "utilities-terminal"
+                                            opacity: parent.busy ? 1.0 : 0.5
+                                            Behavior on scale { NumberAnimation { duration: 150 } }
+                                            scale: parent.busy ? 1.3 : 1.0
+                                        }
+                                        MouseArea { anchors.fill:parent; cursorShape:Qt.PointingHandCursor; enabled:!parent.busy
+                                            onClicked:{ parent.busy=true; cLogsT.start();
+                                                actionSource.connectSource("konsole -e bash -c 'docker logs --tail 50 -f "+cn+"'")}}
                                         PlasmaComponents3.ToolTip{text:i18n("Logs");delay:Kirigami.Units.toolTipDelay}
                                     }
 
+                                    // Remove
                                     Item {
                                         visible: !run; width:16; height:16
-                                        Kirigami.Icon{anchors.fill:parent;source:"edit-delete-remove";opacity:0.5}
-                                        MouseArea{anchors.fill:parent;cursorShape:Qt.PointingHandCursor
-                                            onClicked:actionSource.connectSource("bash -c \"docker rm "+cn+"\"")}
+                                        property bool busy: false
+                                        Timer { id: cRemoveT; interval: 2000; onTriggered: parent.busy = false }
+                                        Kirigami.Icon {
+                                            anchors.fill:parent
+                                            source: parent.busy ? "emblem-checked" : "edit-delete-remove"
+                                            opacity: parent.busy ? 1.0 : 0.5
+                                            Behavior on scale { NumberAnimation { duration: 150 } }
+                                            scale: parent.busy ? 1.3 : 1.0
+                                        }
+                                        MouseArea { anchors.fill:parent; cursorShape:Qt.PointingHandCursor; enabled:!parent.busy
+                                            onClicked:{ parent.busy=true; cRemoveT.start();
+                                                actionSource.connectSource("docker rm "+cn)}}
                                         PlasmaComponents3.ToolTip{text:i18n("Remove");delay:Kirigami.Units.toolTipDelay}
                                     }
                                 }

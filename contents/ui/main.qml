@@ -117,6 +117,10 @@ PlasmoidItem {
             list = list.filter(function(c){ return c.name.toLowerCase().indexOf(sf)>=0; });
         }
         list.sort(function(a,b){
+            var pa = a.project || "zzzz";
+            var pb = b.project || "zzzz";
+            if (pa !== pb) return pa.localeCompare(pb);
+            
             var order={running:0,restarting:1,paused:2,created:3,exited:4,dead:5};
             var oa=order[a.state]!==undefined?order[a.state]:6;
             var ob=order[b.state]!==undefined?order[b.state]:6;
@@ -372,6 +376,21 @@ PlasmoidItem {
                                 }
                             }
                         }
+                        // System Prune
+                        PlasmaComponents3.ToolButton {
+                            id: qPruneBtn
+                            icon.name: qPruneBusy.running ? "emblem-checked" : "edit-delete-sweep"
+                            Layout.alignment: Qt.AlignVCenter
+                            opacity: qPruneBusy.running ? 1.0 : 0.7
+                            PlasmaComponents3.ToolTip.text: i18n("Prune Unused Data")
+                            PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                            PlasmaComponents3.ToolTip.visible: hovered
+                            Timer { id: qPruneBusy; interval: 2000 }
+                            onClicked: {
+                                qPruneBusy.start();
+                                actionSource.connectSource("docker system prune -f");
+                            }
+                        }
                         Item{Layout.fillWidth:true}
                     }
                 }
@@ -411,6 +430,19 @@ PlasmoidItem {
                 Layout.fillWidth:true;Layout.fillHeight:true;Layout.minimumHeight:Kirigami.Units.gridUnit*6
                 ListView {
                     id:containerList;model:root.displayContainers;spacing:3;clip:true
+                    
+                    section.property: "project"
+                    section.delegate: Rectangle {
+                        width: ListView.view.width
+                        height: (section !== "" && section !== "zzzz") ? Kirigami.Units.gridUnit * 1.5 : 0
+                        visible: height > 0
+                        color: Kirigami.ColorUtils.tintWithAlpha(Kirigami.Theme.backgroundColor, Kirigami.Theme.textColor, 0.05)
+                        RowLayout {
+                            anchors.fill: parent; anchors.margins: Kirigami.Units.smallSpacing
+                            Kirigami.Icon { source: "folder-symbolic"; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small; opacity: 0.7 }
+                            PlasmaComponents3.Label { text: section; font.weight: Font.Bold; opacity: 0.8; Layout.fillWidth: true }
+                        }
+                    }
                     
                     add: Transition { NumberAnimation { property: "opacity"; from: 0; to: 1; duration: Kirigami.Units.shortDuration } }
                     remove: Transition { NumberAnimation { property: "opacity"; from: 1; to: 0; duration: Kirigami.Units.shortDuration } }
@@ -459,6 +491,10 @@ PlasmoidItem {
                             PlasmaComponents3.MenuItem {
                                 text: i18n("Logs"); icon.name: "utilities-terminal"; visible: run
                                 onClicked: actionSource.connectSource("konsole --noclose -e bash -c 'echo \"=== Logs for "+cn+" ===\"; docker logs --tail 50 -f "+cn+"'")
+                            }
+                            PlasmaComponents3.MenuItem {
+                                text: i18n("Exec (Shell)"); icon.name: "system-run"; visible: run
+                                onClicked: actionSource.connectSource("konsole -e docker exec -it "+cn+" /bin/sh")
                             }
                             PlasmaComponents3.MenuItem {
                                 text: i18n("Remove"); icon.name: "edit-delete-remove"; visible: !run
@@ -550,6 +586,20 @@ PlasmoidItem {
                                         onClicked: { busy=true; cLogsT.start(); actionSource.connectSource("konsole --noclose -e bash -c 'echo \"=== Logs for "+cn+" ===\"; docker logs --tail 50 -f "+cn+"'"); }
                                     }
 
+                                    // Exec
+                                    PlasmaComponents3.ToolButton {
+                                        visible: run
+                                        property bool busy: false
+                                        Timer { id: cExecT; interval: 1500; onTriggered: parent.busy = false }
+                                        icon.name: busy ? "emblem-checked" : "system-run"
+                                        display: PlasmaComponents3.AbstractButton.IconOnly
+                                        enabled: !busy
+                                        PlasmaComponents3.ToolTip.text: i18n("Exec Shell")
+                                        PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
+                                        PlasmaComponents3.ToolTip.visible: hovered
+                                        onClicked: { busy=true; cExecT.start(); actionSource.connectSource("konsole -e docker exec -it "+cn+" /bin/sh"); }
+                                    }
+
                                     // Remove
                                     PlasmaComponents3.ToolButton {
                                         visible: !run
@@ -622,6 +672,40 @@ PlasmoidItem {
                                     PlasmaComponents3.Label { text: i18n("Memory:"); font: Kirigami.Theme.smallFont; opacity: 0.6 }
                                     PlasmaComponents3.Label { text: st ? st.memUsed : ""; font: Kirigami.Theme.smallFont; Layout.fillWidth: true }
                                 }
+                                
+                                // Built-in Logs Viewer
+                                Rectangle {
+                                    Layout.fillWidth: true; Layout.preferredHeight: Kirigami.Units.gridUnit * 6
+                                    color: Kirigami.ColorUtils.tintWithAlpha(Kirigami.Theme.backgroundColor, Kirigami.Theme.textColor, 0.05)
+                                    border.color: sepColor; border.width: 1; radius: 4
+                                    visible: delegateCard.expanded && run
+                                    PlasmaComponents3.ScrollView {
+                                        anchors.fill: parent; anchors.margins: Kirigami.Units.smallSpacing
+                                        PlasmaComponents3.Label {
+                                            id: inlineLogLabel
+                                            text: i18n("Loading logs...")
+                                            font.family: "monospace"; font.pixelSize: Kirigami.Theme.smallFont.pixelSize * 0.9
+                                            wrapMode: Text.Wrap
+                                        }
+                                    }
+                                    Plasma5Support.DataSource {
+                                        id: inlineLogSource
+                                        engine: "executable"
+                                        connectedSources: []
+                                        onNewData: function(source, data) {
+                                            var stdout = data["stdout"];
+                                            if (stdout !== undefined) {
+                                                var txt = stdout.trim();
+                                                inlineLogLabel.text = txt.length > 0 ? txt : i18n("No logs");
+                                                disconnectSource(source);
+                                            }
+                                        }
+                                    }
+                                    Timer {
+                                        interval: 5000; running: delegateCard.expanded && run; repeat: true; triggeredOnStart: true
+                                        onTriggered: inlineLogSource.connectSource("docker logs --tail 20 " + cn + " 2>&1")
+                                    }
+                                }
                             }
                         }
 
@@ -647,9 +731,13 @@ PlasmoidItem {
             for(var i=0;i<lines.length;i++){
                 var p=lines[i].split("|");
                 if(p.length>=4){
-                    var n=p[0].trim(),s=p[1].trim(),st=p[2].trim(),pt=p[3].trim();
-                    if(n.length===0)continue;
-                    all.push({name:n,state:s,status:st});
+                var n=p[0].trim(),s=p[1].trim(),st=p[2].trim(),pt=p[3].trim();
+                var labels = p.length>4 ? p[4].trim() : "";
+                var prj = "";
+                var match = labels.match(/com\.docker\.compose\.project=([^,]+)/);
+                if (match) prj = match[1];
+                if(n.length===0)continue;
+                all.push({name:n,state:s,status:st,project:prj});
                     ns[n]=s;
                     root.containerPorts[n]=pt.replace(/,\s*/g,", ");
                     if(s==="running")rc++;
@@ -716,7 +804,7 @@ PlasmoidItem {
         interval:Plasmoid.configuration.refreshInterval;running:true;repeat:true;triggeredOnStart:true
         onTriggered:{
             root.isFetching = true;
-            containerInfoSource.connectSource("docker ps -a --format '{{.Names}}|{{.State}}|{{.Status}}|{{.Ports}}'");
+            containerInfoSource.connectSource("docker ps -a --format '{{.Names}}|{{.State}}|{{.Status}}|{{.Ports}}|{{.Labels}}'");
             statsSource.connectSource("docker stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}|{{.NetIO}}'");
             sysInfoSource.connectSource("echo \"$(docker images -q | wc -l)|$(docker ps -a -q | wc -l)\"");
         }

@@ -5,7 +5,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 
-ColumnLayout {
+Kirigami.FormLayout {
     id: root
 
     property alias cfg_refreshInterval: intervalSpin.value
@@ -23,67 +23,53 @@ ColumnLayout {
     property alias cfg_panelIconName: panelIconField.text
     property alias cfg_cardIconName: cardIconField.text
 
-    spacing: Kirigami.Units.largeSpacing
-
     // ── Docker ──────────────────────────────────────────────────────────
-    PlasmaComponents3.Label {
-        text: i18n("Docker Settings"); font.weight: Font.Bold
-    }
-    PlasmaComponents3.Label {
-        text: i18n("Refresh Interval (ms):"); font: Kirigami.Theme.smallFont
-    }
+    Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18n("Docker Settings") }
+
     QQC2.SpinBox {
         id: intervalSpin
+        Kirigami.FormData.label: i18n("Refresh Interval:")
         from: 1000; to: 300000; stepSize: 1000; editable: true
-        Layout.fillWidth: true
         textFromValue: function(v) { return v + " ms" }
         valueFromText: function(t) { return parseInt(t) }
     }
-    PlasmaComponents3.Label {
-        text: i18n("Target Container:"); font: Kirigami.Theme.smallFont
-        Layout.topMargin: Kirigami.Units.smallSpacing
-    }
+
     QQC2.TextField {
         id: containerField
-        Layout.fillWidth: true; placeholderText: i18n("e.g. test-node")
+        Kirigami.FormData.label: i18n("Target Container:")
+        placeholderText: i18n("e.g. test-node")
+        Layout.fillWidth: true
     }
-
-    Kirigami.Separator { Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing }
 
     // ── Notifications ───────────────────────────────────────────────────
-    PlasmaComponents3.Label {
-        text: i18n("Behavior"); font.weight: Font.Bold
-    }
+    Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18n("Behavior") }
+
     QQC2.CheckBox {
         id: notificationsCheck
         text: i18n("Enable desktop notifications")
     }
+
     QQC2.CheckBox {
         id: showAllCheck
         text: i18n("Show all containers (including stopped)")
     }
 
-    Kirigami.Separator { Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing }
-
     // ── Panel Appearance ────────────────────────────────────────────────
-    PlasmaComponents3.Label {
-        text: i18n("Panel Appearance"); font.weight: Font.Bold
+    Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18n("Panel Appearance") }
+
+    QQC2.SpinBox {
+        id: panelIconSpin
+        Kirigami.FormData.label: i18n("Icon Size:")
+        from: 12; to: 48; stepSize: 2; editable: true
+        textFromValue: function(v) { return v + " px" }
+        valueFromText: function(t) { return parseInt(t) }
     }
 
     RowLayout {
+        Kirigami.FormData.label: i18n("Custom Icon:")
         Layout.fillWidth: true
-        PlasmaComponents3.Label { text: i18n("Icon:"); font: Kirigami.Theme.smallFont; Layout.alignment: Qt.AlignVCenter }
-        QQC2.SpinBox {
-            id: panelIconSpin; from: 12; to: 48; stepSize: 2; editable: true; Layout.fillWidth: true
-            textFromValue: function(v) { return v + " px" }; valueFromText: function(t) { return parseInt(t) }
-        }
-    }
-    RowLayout {
-        Layout.fillWidth: true
-        PlasmaComponents3.Label { text: i18n("Custom Icon:"); font: Kirigami.Theme.smallFont; Layout.alignment: Qt.AlignVCenter }
         QQC2.TextField {
             id: panelIconField; Layout.fillWidth: true; placeholderText: i18n("Default: docker whale")
-            font: Kirigami.Theme.smallFont
         }
         Kirigami.Icon {
             Layout.preferredHeight: 24; Layout.preferredWidth: 24
@@ -91,60 +77,57 @@ ColumnLayout {
             Layout.alignment: Qt.AlignVCenter
         }
     }
-    PlasmaComponents3.Label {
-        text: i18n("Leave empty for default docker icon. You can use system icon names (e.g. \"docker\", \"application-x-executable\") or file paths (e.g. \"/path/to/icon.svg\")")
-        font: Kirigami.Theme.smallFont; opacity: 0.5; Layout.fillWidth: true; wrapMode: Text.WordWrap
-    }
-    RowLayout {
+    Kirigami.InlineMessage {
+        text: i18n("Leave empty for default docker icon. You can use system icon names or file paths.")
+        type: Kirigami.MessageType.Information
+        visible: true
         Layout.fillWidth: true
-        PlasmaComponents3.Label { text: i18n("Font:"); font: Kirigami.Theme.smallFont; Layout.alignment: Qt.AlignVCenter }
-        QQC2.SpinBox {
-            id: panelFontSpin; from: 8; to: 24; stepSize: 1; editable: true; Layout.fillWidth: true
-            textFromValue: function(v) { return v + " px" }; valueFromText: function(t) { return parseInt(t) }
-        }
-    }
-    RowLayout {
-        Layout.fillWidth: true
-        PlasmaComponents3.Label { text: i18n("Color:"); font: Kirigami.Theme.smallFont; Layout.alignment: Qt.AlignVCenter }
-        QQC2.TextField {
-            id: panelColorField; Layout.fillWidth: true; placeholderText: i18n("Auto (status based)")
-            font: Kirigami.Theme.smallFont
-        }
-    }
-    PlasmaComponents3.Label {
-        text: i18n("Leave color empty for auto: green=running, orange=partial, red=stopped")
-        font: Kirigami.Theme.smallFont; opacity: 0.5; Layout.fillWidth: true; wrapMode: Text.WordWrap
     }
 
-    Kirigami.Separator { Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing }
+    QQC2.SpinBox {
+        id: panelFontSpin
+        Kirigami.FormData.label: i18n("Font Size:")
+        from: 8; to: 24; stepSize: 1; editable: true
+        textFromValue: function(v) { return v + " px" }
+        valueFromText: function(t) { return parseInt(t) }
+    }
+
+    QQC2.TextField {
+        id: panelColorField
+        Kirigami.FormData.label: i18n("Color:")
+        Layout.fillWidth: true; placeholderText: i18n("Auto (status based)")
+    }
+    Kirigami.InlineMessage {
+        text: i18n("Leave empty for auto: green=running, orange=partial, red=stopped")
+        type: Kirigami.MessageType.Information
+        visible: true
+        Layout.fillWidth: true
+    }
 
     // ── Popup Appearance ────────────────────────────────────────────────
-    PlasmaComponents3.Label {
-        text: i18n("Popup Appearance"); font.weight: Font.Bold
+    Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18n("Popup Appearance") }
+
+    QQC2.SpinBox {
+        id: popupWidthSpin
+        Kirigami.FormData.label: i18n("Width:")
+        from: 24; to: 60; stepSize: 2; editable: true
+        textFromValue: function(v) { return v + " GU" }
+        valueFromText: function(t) { return parseInt(t) }
+    }
+
+    QQC2.SpinBox {
+        id: popupHeightSpin
+        Kirigami.FormData.label: i18n("Height:")
+        from: 16; to: 50; stepSize: 2; editable: true
+        textFromValue: function(v) { return v + " GU" }
+        valueFromText: function(t) { return parseInt(t) }
     }
 
     RowLayout {
+        Kirigami.FormData.label: i18n("Card Icon:")
         Layout.fillWidth: true
-        PlasmaComponents3.Label { text: i18n("Width:"); font: Kirigami.Theme.smallFont; Layout.alignment: Qt.AlignVCenter }
-        QQC2.SpinBox {
-            id: popupWidthSpin; from: 24; to: 60; stepSize: 2; editable: true; Layout.fillWidth: true
-            textFromValue: function(v) { return v + " GU" }; valueFromText: function(t) { return parseInt(t) }
-        }
-    }
-    RowLayout {
-        Layout.fillWidth: true
-        PlasmaComponents3.Label { text: i18n("Height:"); font: Kirigami.Theme.smallFont; Layout.alignment: Qt.AlignVCenter }
-        QQC2.SpinBox {
-            id: popupHeightSpin; from: 16; to: 50; stepSize: 2; editable: true; Layout.fillWidth: true
-            textFromValue: function(v) { return v + " GU" }; valueFromText: function(t) { return parseInt(t) }
-        }
-    }
-    RowLayout {
-        Layout.fillWidth: true
-        PlasmaComponents3.Label { text: i18n("Card Icon:"); font: Kirigami.Theme.smallFont; Layout.alignment: Qt.AlignVCenter }
         QQC2.TextField {
             id: cardIconField; Layout.fillWidth: true; placeholderText: i18n("Default: docker whale")
-            font: Kirigami.Theme.smallFont
         }
         Kirigami.Icon {
             Layout.preferredHeight: 24; Layout.preferredWidth: 24
@@ -152,47 +135,29 @@ ColumnLayout {
             Layout.alignment: Qt.AlignVCenter
         }
     }
-    PlasmaComponents3.Label {
-        text: i18n("Container card icon. Same rules as panel icon apply.")
-        font: Kirigami.Theme.smallFont; opacity: 0.5; Layout.fillWidth: true; wrapMode: Text.WordWrap
-    }
-    RowLayout {
-        Layout.fillWidth: true
-        PlasmaComponents3.Label { text: i18n("Font:"); font: Kirigami.Theme.smallFont; Layout.alignment: Qt.AlignVCenter }
-        QQC2.SpinBox {
-            id: cardFontSpin; from: 0; to: 20; stepSize: 1; editable: true; Layout.fillWidth: true
-            textFromValue: function(v) { return v === 0 ? "Auto" : v + " px" }; valueFromText: function(t) { return t === "Auto" ? 0 : parseInt(t) }
-        }
-    }
-    RowLayout {
-        Layout.fillWidth: true
-        PlasmaComponents3.Label { text: i18n("Color:"); font: Kirigami.Theme.smallFont; Layout.alignment: Qt.AlignVCenter }
-        QQC2.TextField {
-            id: cardColorField; Layout.fillWidth: true; placeholderText: i18n("Theme default")
-            font: Kirigami.Theme.smallFont
-        }
-    }
-    PlasmaComponents3.Label {
-        text: i18n("Font 0 = theme default. Color: hex (#ff0000) or name (red). Empty = theme default.")
-        font: Kirigami.Theme.smallFont; opacity: 0.5; Layout.fillWidth: true; wrapMode: Text.WordWrap
+
+    QQC2.SpinBox {
+        id: cardFontSpin
+        Kirigami.FormData.label: i18n("Card Font Size:")
+        from: 0; to: 20; stepSize: 1; editable: true
+        textFromValue: function(v) { return v === 0 ? "Auto" : v + " px" }
+        valueFromText: function(t) { return t === "Auto" ? 0 : parseInt(t) }
     }
 
-    Kirigami.Separator { Layout.fillWidth: true; Layout.topMargin: Kirigami.Units.smallSpacing }
+    QQC2.TextField {
+        id: cardColorField
+        Kirigami.FormData.label: i18n("Card Font Color:")
+        Layout.fillWidth: true; placeholderText: i18n("Theme default")
+    }
 
     // ── Borders ────────────────────────────────────────────────────────
-    PlasmaComponents3.Label {
-        text: i18n("Borders"); font.weight: Font.Bold
-    }
-    RowLayout {
-        Layout.fillWidth: true
-        PlasmaComponents3.Label { text: i18n("Thickness:"); font: Kirigami.Theme.smallFont; Layout.alignment: Qt.AlignVCenter }
-        QQC2.SpinBox {
-            id: borderSpin; from: 0; to: 5; stepSize: 1; editable: true; Layout.fillWidth: true
-            textFromValue: function(v) { return v + " px" }; valueFromText: function(t) { return parseInt(t) }
-        }
-    }
-    PlasmaComponents3.Label {
-        text: i18n("0 = no border, 1 = default, 2-5 = thicker")
-        font: Kirigami.Theme.smallFont; opacity: 0.5
+    Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18n("Borders") }
+
+    QQC2.SpinBox {
+        id: borderSpin
+        Kirigami.FormData.label: i18n("Thickness:")
+        from: 0; to: 5; stepSize: 1; editable: true
+        textFromValue: function(v) { return v + " px" }
+        valueFromText: function(t) { return parseInt(t) }
     }
 }

@@ -17,6 +17,22 @@
       <default>true</default>
       <label>Enable desktop notifications for container state changes</label>
     </entry>
+    <entry name="enableResourceAlerts" type="Bool">
+      <default>true</default>
+      <label>Enable high resource usage alerts</label>
+    </entry>
+    <entry name="cpuAlertThreshold" type="Int">
+      <default>90</default>
+      <label>CPU usage percentage threshold for alerts</label>
+    </entry>
+    <entry name="memAlertThreshold" type="Int">
+      <default>85</default>
+      <label>Memory usage percentage threshold for alerts</label>
+    </entry>
+    <entry name="dockerHost" type="String">
+      <default></default>
+      <label>Docker Host URI (e.g. ssh://user@ip or tcp://ip:2375)</label>
+    </entry>
     <entry name="showAllContainers" type="Bool">
       <default>true</default>
       <label>Show all containers including stopped ones</label>

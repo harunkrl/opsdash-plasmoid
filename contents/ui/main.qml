@@ -21,6 +21,8 @@ PlasmoidItem {
     property var cpuHistory: ({})
     property var previousStates: ({})
     property var systemOverview: ({ images: 0, totalContainers: 0 })
+    property var alertCount: ({})
+    property var imagesListModel: []
     property bool initialized: false
     property bool isFetching: false
     property bool showAll: Plasmoid.configuration.showAllContainers
@@ -30,6 +32,7 @@ PlasmoidItem {
     readonly property string defaultIcon: Qt.resolvedUrl("icons/docker.svg")
     readonly property string resolvedPanelIcon: Plasmoid.configuration.panelIconName && Plasmoid.configuration.panelIconName.length > 0 ? Plasmoid.configuration.panelIconName : defaultIcon
     readonly property string resolvedCardIcon: Plasmoid.configuration.cardIconName && Plasmoid.configuration.cardIconName.length > 0 ? Plasmoid.configuration.cardIconName : defaultIcon
+    readonly property string dcmd: Plasmoid.configuration.dockerHost && Plasmoid.configuration.dockerHost.length > 0 ? "docker -H " + Plasmoid.configuration.dockerHost : "docker"
 
     readonly property color sepColor: Kirigami.ColorUtils.tintWithAlpha(
         Kirigami.Theme.backgroundColor, Kirigami.Theme.textColor, 0.2)
@@ -336,7 +339,7 @@ PlasmoidItem {
                                 qStartBusy.start();
                                 for(var i=0;i<root.containers.length;i++){
                                     var c=root.containers[i];
-                                    if(c.state==="exited"||c.state==="created"||c.state==="paused") actionSource.connectSource("docker start "+c.name);
+                                    if(c.state==="exited"||c.state==="created"||c.state==="paused") actionSource.connectSource(root.dcmd + " start "+c.name);
                                 }
                             }
                         }
@@ -354,7 +357,7 @@ PlasmoidItem {
                                 qStopBusy.start();
                                 for(var i=0;i<root.containers.length;i++){
                                     var c=root.containers[i];
-                                    if(c.state==="running") actionSource.connectSource("docker stop "+c.name);
+                                    if(c.state==="running") actionSource.connectSource(root.dcmd + " stop "+c.name);
                                 }
                             }
                         }
@@ -372,7 +375,7 @@ PlasmoidItem {
                                 qRestartBusy.start();
                                 for(var i=0;i<root.containers.length;i++){
                                     var c=root.containers[i];
-                                    if(c.state==="running") actionSource.connectSource("docker restart "+c.name);
+                                    if(c.state==="running") actionSource.connectSource(root.dcmd + " restart "+c.name);
                                 }
                             }
                         }
@@ -388,7 +391,7 @@ PlasmoidItem {
                             Timer { id: qPruneBusy; interval: 2000 }
                             onClicked: {
                                 qPruneBusy.start();
-                                actionSource.connectSource("docker system prune -f");
+                                actionSource.connectSource(root.dcmd + " system prune -f");
                             }
                         }
                         Item{Layout.fillWidth:true}
@@ -441,6 +444,21 @@ PlasmoidItem {
                             anchors.fill: parent; anchors.margins: Kirigami.Units.smallSpacing
                             Kirigami.Icon { source: "folder-symbolic"; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small; opacity: 0.7 }
                             PlasmaComponents3.Label { text: section; font.weight: Font.Bold; opacity: 0.8; Layout.fillWidth: true }
+                            PlasmaComponents3.ToolButton {
+                                icon.name: "media-playback-start"; width: Kirigami.Units.iconSizes.small; height: Kirigami.Units.iconSizes.small
+                                PlasmaComponents3.ToolTip { text: i18n("Start Project") }
+                                onClicked: root.runProjectAction(section, "start")
+                            }
+                            PlasmaComponents3.ToolButton {
+                                icon.name: "media-playback-stop"; width: Kirigami.Units.iconSizes.small; height: Kirigami.Units.iconSizes.small
+                                PlasmaComponents3.ToolTip { text: i18n("Stop Project") }
+                                onClicked: root.runProjectAction(section, "stop")
+                            }
+                            PlasmaComponents3.ToolButton {
+                                icon.name: "system-reboot"; width: Kirigami.Units.iconSizes.small; height: Kirigami.Units.iconSizes.small
+                                PlasmaComponents3.ToolTip { text: i18n("Restart Project") }
+                                onClicked: root.runProjectAction(section, "restart")
+                            }
                         }
                     }
                     
@@ -478,15 +496,15 @@ PlasmoidItem {
                             id: cardMenu
                             PlasmaComponents3.MenuItem {
                                 text: i18n("Start"); icon.name: "media-playback-start"; visible: cs==="exited"||cs==="created"||cs==="paused"
-                                onClicked: actionSource.connectSource("docker start "+cn)
+                                onClicked: actionSource.connectSource(root.dcmd + " start "+cn)
                             }
                             PlasmaComponents3.MenuItem {
                                 text: i18n("Stop"); icon.name: "process-stop"; visible: run
-                                onClicked: actionSource.connectSource("docker stop "+cn)
+                                onClicked: actionSource.connectSource(root.dcmd + " stop "+cn)
                             }
                             PlasmaComponents3.MenuItem {
                                 text: i18n("Restart"); icon.name: "view-refresh"; visible: run
-                                onClicked: actionSource.connectSource("docker restart "+cn)
+                                onClicked: actionSource.connectSource(root.dcmd + " restart "+cn)
                             }
                             PlasmaComponents3.MenuItem {
                                 text: i18n("Logs"); icon.name: "utilities-terminal"; visible: run
@@ -494,11 +512,11 @@ PlasmoidItem {
                             }
                             PlasmaComponents3.MenuItem {
                                 text: i18n("Exec (Shell)"); icon.name: "system-run"; visible: run
-                                onClicked: actionSource.connectSource("konsole -e docker exec -it "+cn+" /bin/sh")
+                                onClicked: actionSource.connectSource("konsole -e " + root.dcmd + " exec -it "+cn+" /bin/sh")
                             }
                             PlasmaComponents3.MenuItem {
                                 text: i18n("Remove"); icon.name: "edit-delete-remove"; visible: !run
-                                onClicked: actionSource.connectSource("docker rm "+cn)
+                                onClicked: actionSource.connectSource(root.dcmd + " rm "+cn)
                             }
                         }
 
@@ -541,7 +559,7 @@ PlasmoidItem {
                                         PlasmaComponents3.ToolTip.text: i18n("Start")
                                         PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                                         PlasmaComponents3.ToolTip.visible: hovered
-                                        onClicked: { busy=true; cStartT.start(); actionSource.connectSource("docker start "+cn); }
+                                        onClicked: { busy=true; cStartT.start(); actionSource.connectSource(root.dcmd + " start "+cn); }
                                     }
 
                                     // Stop
@@ -555,7 +573,7 @@ PlasmoidItem {
                                         PlasmaComponents3.ToolTip.text: i18n("Stop")
                                         PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                                         PlasmaComponents3.ToolTip.visible: hovered
-                                        onClicked: { busy=true; cStopT.start(); actionSource.connectSource("docker stop "+cn); }
+                                        onClicked: { busy=true; cStopT.start(); actionSource.connectSource(root.dcmd + " stop "+cn); }
                                     }
 
                                     // Restart
@@ -569,7 +587,7 @@ PlasmoidItem {
                                         PlasmaComponents3.ToolTip.text: i18n("Restart")
                                         PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                                         PlasmaComponents3.ToolTip.visible: hovered
-                                        onClicked: { busy=true; cRestartT.start(); actionSource.connectSource("docker restart "+cn); }
+                                        onClicked: { busy=true; cRestartT.start(); actionSource.connectSource(root.dcmd + " restart "+cn); }
                                     }
 
                                     // Logs
@@ -597,7 +615,7 @@ PlasmoidItem {
                                         PlasmaComponents3.ToolTip.text: i18n("Exec Shell")
                                         PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                                         PlasmaComponents3.ToolTip.visible: hovered
-                                        onClicked: { busy=true; cExecT.start(); actionSource.connectSource("konsole -e docker exec -it "+cn+" /bin/sh"); }
+                                        onClicked: { busy=true; cExecT.start(); actionSource.connectSource("konsole -e " + root.dcmd + " exec -it "+cn+" /bin/sh"); }
                                     }
 
                                     // Remove
@@ -611,7 +629,7 @@ PlasmoidItem {
                                         PlasmaComponents3.ToolTip.text: i18n("Remove")
                                         PlasmaComponents3.ToolTip.delay: Kirigami.Units.toolTipDelay
                                         PlasmaComponents3.ToolTip.visible: hovered
-                                        onClicked: { busy=true; cRemoveT.start(); actionSource.connectSource("docker rm "+cn); }
+                                        onClicked: { busy=true; cRemoveT.start(); actionSource.connectSource(root.dcmd + " rm "+cn); }
                                     }
                                 }
                             }
@@ -703,7 +721,7 @@ PlasmoidItem {
                                     }
                                     Timer {
                                         interval: 5000; running: delegateCard.expanded && run; repeat: true; triggeredOnStart: true
-                                        onTriggered: inlineLogSource.connectSource("docker logs --tail 20 " + cn + " 2>&1")
+                                        onTriggered: inlineLogSource.connectSource(root.dcmd + " logs --tail 20 " + cn + " 2>&1")
                                     }
                                 }
                             }
@@ -719,7 +737,52 @@ PlasmoidItem {
                     }
                 }
             }
-        }
+        } // End of Containers ColumnLayout
+
+        // SECOND TAB: IMAGES
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            PlasmaComponents3.ScrollView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                ListView {
+                    id: imagesList
+                    model: root.imagesListModel
+                    clip: true
+                    spacing: Kirigami.Units.smallSpacing
+                    delegate: Kirigami.AbstractCard {
+                        width: ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.margins: Kirigami.Units.smallSpacing
+                            Kirigami.Icon { source: "application-x-cd-image"; Layout.preferredWidth: Kirigami.Units.iconSizes.medium; Layout.preferredHeight: Kirigami.Units.iconSizes.medium }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                PlasmaComponents3.Label { text: modelData.repo + ":" + modelData.tag; font.weight: Font.Bold; elide: Text.ElideRight; Layout.fillWidth: true }
+                                RowLayout {
+                                    PlasmaComponents3.Label { text: "ID: " + modelData.id; font: Kirigami.Theme.smallFont; opacity: 0.6 }
+                                    PlasmaComponents3.Label { text: "Size: " + modelData.size; font: Kirigami.Theme.smallFont; opacity: 0.8; Layout.alignment: Qt.AlignRight; Layout.fillWidth: true; horizontalAlignment: Text.AlignRight }
+                                }
+                            }
+                            PlasmaComponents3.ToolButton {
+                                icon.name: "edit-delete"
+                                PlasmaComponents3.ToolTip { text: i18n("Remove Image") }
+                                onClicked: actionSource.connectSource(root.dcmd + " rmi " + modelData.id)
+                            }
+                        }
+                    }
+                    PlasmaExtras.PlaceholderMessage {
+                        anchors.centerIn: parent
+                        width: parent.width - Kirigami.Units.gridUnit*4
+                        visible: imagesList.count === 0
+                        iconName: "edit-find"
+                        text: i18n("No images found")
+                    }
+                }
+            }
+    }
 
     // ── Data Sources ────────────────────────────────────────────────────
     Plasma5Support.DataSource {
@@ -766,6 +829,18 @@ PlasmoidItem {
             root.containers=all;containerInfoSource.disconnectSource(source);
         }
     }
+    function runProjectAction(project, action) {
+        var names = [];
+        for (var i = 0; i < root.containers.length; i++) {
+            if (root.containers[i].project === project) {
+                names.push(root.containers[i].name);
+            }
+        }
+        if (names.length > 0) {
+            actionSource.connectSource(root.dcmd + " " + action + " " + names.join(" "));
+        }
+    }
+
     Plasma5Support.DataSource {
         id:statsSource;engine:"executable";connectedSources:[]
         onNewData:function(source,data){
@@ -778,6 +853,20 @@ PlasmoidItem {
                 var mm=parseMemToMiB(mu),up=mu.split(" / ")[0].trim();
                 ns[n]={cpu:cpu,memPerc:mp,memUsed:up,memMiB:mm,netIO:nio};
                 if(!nh[n])nh[n]=[];nh[n]=nh[n].concat([cpu]);if(nh[n].length>root.historySize)nh[n]=nh[n].slice(-root.historySize);
+                
+                if (Plasmoid.configuration.enableResourceAlerts) {
+                    if (cpu > Plasmoid.configuration.cpuAlertThreshold || mp > Plasmoid.configuration.memAlertThreshold) {
+                        root.alertCount[n] = (root.alertCount[n] || 0) + 1;
+                        if (root.alertCount[n] === 3) {
+                            generalNotification.title = "OpsDash Resource Alert"; 
+                            generalNotification.text = "Container \"" + n + "\" high usage (CPU: " + cpu.toFixed(1) + "%, Mem: " + mp.toFixed(1) + "%)"; 
+                            generalNotification.iconName = "dialog-warning"; 
+                            generalNotification.sendEvent();
+                        }
+                    } else {
+                        root.alertCount[n] = 0;
+                    }
+                }
             }}
             for(var k in nh){if(!ns[k])delete nh[k];}
             root.containerStats=ns;root.cpuHistory=nh;
@@ -804,9 +893,34 @@ PlasmoidItem {
         interval:Plasmoid.configuration.refreshInterval;running:true;repeat:true;triggeredOnStart:true
         onTriggered:{
             root.isFetching = true;
-            containerInfoSource.connectSource("docker ps -a --format '{{.Names}}|{{.State}}|{{.Status}}|{{.Ports}}|{{.Labels}}'");
-            statsSource.connectSource("docker stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}|{{.NetIO}}'");
-            sysInfoSource.connectSource("echo \"$(docker images -q | wc -l)|$(docker ps -a -q | wc -l)\"");
+            containerInfoSource.connectSource(root.dcmd + " ps -a --format '{{.Names}}|{{.State}}|{{.Status}}|{{.Ports}}|{{.Labels}}'");
+            statsSource.connectSource(root.dcmd + " stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.MemPerc}}|{{.NetIO}}'");
+            sysInfoSource.connectSource("echo \"$(" + root.dcmd + " images -q | wc -l)|$(" + root.dcmd + " ps -a -q | wc -l)\"");
+            imageInfoSource.connectSource(root.dcmd + " images --format '{{.ID}}|{{.Repository}}|{{.Tag}}|{{.Size}}'");
+        }
+    }
+    
+    Plasma5Support.DataSource {
+        id: imageInfoSource
+        engine: "executable"
+        connectedSources: []
+        onNewData: function(source, data) {
+            var stdout = data["stdout"];
+            if (stdout === undefined || stdout.trim().length === 0) {
+                root.imagesListModel = [];
+                disconnectSource(source);
+                return;
+            }
+            var lines = stdout.trim().split("\n");
+            var imgs = [];
+            for (var i = 0; i < lines.length; i++) {
+                var p = lines[i].split("|");
+                if (p.length >= 4) {
+                    imgs.push({ id: p[0], repo: p[1], tag: p[2], size: p[3] });
+                }
+            }
+            root.imagesListModel = imgs;
+            disconnectSource(source);
         }
     }
 }

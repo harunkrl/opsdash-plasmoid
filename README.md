@@ -6,118 +6,120 @@
   <img src="https://img.shields.io/badge/License-GPL--3.0-purple?style=for-the-badge" alt="GPL-3.0">
 </p>
 
-<h1 align="center">🐳 OpsDash</h1>
+<h1 align="center">OpsDash</h1>
 
 <p align="center">
-  <strong>KDE Plasma 6 panel widget for real-time Docker container monitoring.</strong>
+  <strong>A KDE Plasma 6 panel widget for real-time Docker container monitoring.</strong>
 </p>
 
 <p align="center">
-  Live container count in the panel • Rich popup with CPU, memory, network & uptime stats<br>
-  Per-container actions • Search & sort • Remote Hosts • Wayland compatible
+  Live container count in the panel · Rich popup with CPU, memory, network and uptime stats<br>
+  Per-container actions · Search and sort · Remote hosts · Wayland compatible
 </p>
 
 ---
 
-## ✨ Features
+## Features
 
 ### Panel
 
-- **Live container count** — shows `X/Y` (running/total) with Docker whale icon
+- **Live container count** — shows `X/Y` (running/total) with the Docker icon
 - **Status-aware colors** — green (all running), orange (partial), red (none running)
-- **Warning badge** — ⚠️ icon appears when some containers are stopped
+- **Warning badge** — appears when some containers are stopped
 - **Rich tooltip** — hover to see aggregate stats: `3/5 up · CPU 12.4% · Mem 1.2 GiB`
 
 ### Popup
 
-- **Two-Tab Layout** — Switch seamlessly between **Containers** and **Images**.
-- **Images Tab** — View all Docker images with tags, IDs, and sizes. Quick delete button included.
-- **Status card** — Docker engine status, aggregate CPU/memory bars, image count.
-- **Global Actions** — System Prune (remove unused data) and Restart All containers.
-- **Docker Compose Grouping** — Containers are neatly grouped by their Compose projects.
-- **Compose Batch Actions** — Start, Stop, or Restart all containers within a Compose project with a single click.
+- **Two-tab layout** — switch between **Containers** and **Images**
+- **Images tab** — list all Docker images with tags, IDs, and sizes; delete with a single click
+- **Status card** — Docker engine status, aggregate CPU/memory bars, and image count
+- **Global actions** — System Prune (remove unused data) and Restart All containers
+- **Docker Compose grouping** — containers grouped by their Compose project
+- **Compose batch actions** — start, stop, or restart every container in a project with one click
 - **Container cards** with:
-  - Status dot + Docker icon + container name + uptime
-  - CPU usage bar + sparkline history chart
-  - Memory usage (used/total) + Network I/O + Port mappings
-  - **Inline Action Buttons**: ▶ Start, ⏹ Stop, 🔄 Restart, 💻 Exec Shell (Konsole), 📟 Inline Logs, 🗑 Remove
-  - **Expandable Logs** — View the last 20 lines of container logs right inside the widget, automatically refreshed!
+  - Status indicator, Docker icon, container name, and uptime
+  - CPU usage bar with a sparkline history chart
+  - Memory usage (used/total), network I/O, and port mappings
+  - **Inline action buttons**: Start, Stop, Restart, Exec Shell (Konsole), Inline Logs, Remove
+  - **Expandable logs** — the last 20 lines of container logs, shown inside the widget and auto-refreshed
 - **State differentiation** — running (green), stopped (red), paused (orange), restarting (yellow)
-- **Search & Sort** — filter containers by name in real-time. Sort by Name, State, CPU, or Memory.
+- **Search and sort** — filter containers by name in real time; sort by Name, State, CPU, or Memory
 
-### Configuration (Tabbed KCM Layout)
+### Configuration
 
-- **General**:
-  - **Docker Host**: Manage a remote VPS or server seamlessly via `ssh://user@ip`. Leave empty for localhost.
-  - Refresh interval (1–60 seconds).
-- **Behavior**:
-  - Desktop notifications for state changes (start/stop/remove).
-  - **Resource Usage Alerts**: Get notified via desktop notifications when a container exceeds customized CPU or Memory thresholds!
-  - Show all containers or running only.
-- **Appearance**:
-  - Panel icon size, font size, custom color overrides.
-  - Popup dimensions (width/height), font colors, and card border thicknesses.
+The settings dialog is organized into three tabs:
+
+- **General**
+  - **Docker Host** — point at a remote host via `ssh://user@ip`, or leave empty for localhost
+  - **Refresh interval** — 1–60 seconds
+- **Behavior**
+  - Desktop notifications for state changes (start/stop/remove)
+  - **Resource usage alerts** — desktop notifications when a container exceeds your CPU or memory thresholds
+  - Show all containers or running containers only
+- **Appearance**
+  - Panel icon size, font size, and custom color overrides
+  - Popup dimensions (width/height), font colors, and card border thickness
 
 ---
 
-## 📸 Preview
+## Preview
 
 <p align="center">
-  <img src="preview.png" alt="OpsDash Popup Preview" width="500">
+  <img src="preview.png" alt="OpsDash popup preview" width="500">
 </p>
 
 <details>
-<summary>📐 ASCII Layout Diagram</summary>
+<summary>ASCII layout diagram</summary>
 
-```
-┌─ Panel ──────────────────────────────────────┐
-│  [🐳]  3/5  ⚠️                               │
-└───────────────────────────────────────────────┘
+```text
++-- Panel --------------------------------------------------+
+|  [docker]  3/5  [warning]                                |
++----------------------------------------------------------+
 
-┌─ Popup ──────────────────────────────────────┐
-│  OpsDash Control Center                       │
-│  [ Containers ] [ Images ]                    │
-│                                               │
-│  ┌─ Status ─────────────────────────────────┐ │
-│  │ ✅ Engine: Running   3/5 up  │ 12 images │ │
-│  │ CPU [████░░░░░░] 12.4%                  │ │
-│  │ Mem [██████░░░░] 1.2 GiB                │ │
-│  │ [System Prune]  [Restart All]           │ │
-│  └──────────────────────────────────────────┘ │
-│                                               │
-│  📁 my-compose-project  [▶] [⏹] [🔄]         │
-│  ┌─ nginx-proxy ──────────────────────────┐  │
-│  │ 🟢 🐳 nginx-proxy  Up 3d 2h           │  │
-│  │    [▶][⏹][🔄][💻][📟][🗑]               │  │
-│  │ CPU [███░░░░] 4.2%  ╱╲╱╲  Mem: 128 MiB │  │
-│  │ Net: ↑12 MB ↓45 MB  Ports: 80, 443    │  │
-│  │ -------------------------------------- │  │
-│  │ > 2026-05-30 nginx start worker        │  │
-│  └────────────────────────────────────────┘  │
-└───────────────────────────────────────────────┘
++-- Popup --------------------------------------------------+
+|  OpsDash Control Center                                   |
+|  [ Containers ] [ Images ]                                |
+|                                                           |
+|  +-- Status --------------------------------------------+ |
+|  | Engine: Running   3/5 up   |   12 images             | |
+|  | CPU [####......] 12.4%                                | |
+|  | Mem [######....] 1.2 GiB                              | |
+|  | [System Prune]  [Restart All]                         | |
+|  +-------------------------------------------------------+ |
+|                                                           |
+|  my-compose-project                  [Start][Stop][Restart]|
+|  +-- nginx-proxy --------------------------------------+  |
+|  | docker  nginx-proxy   Up 3d 2h                      |  |
+|  |    [Start][Stop][Restart][Logs][Exec][Remove]       |  |
+|  | CPU [###.......] 4.2%   /\/\   Mem: 128 MiB         |  |
+|  | Net: ^12 MB  v45 MB    Ports: 80, 443               |  |
+|  | --------------------------------------------------- |  |
+|  | > 2026-05-30 nginx start worker                     |  |
+|  +-------------------------------------------------------+ |
++-----------------------------------------------------------+
 ```
 
 </details>
 
-## 📋 Requirements
+## Requirements
 
 | Requirement | Version |
 |---|---|
 | KDE Plasma | **6.0+** (tested on 6.6.5) |
 | Qt | **6.x** |
-| Docker | Any version with `docker ps` / `docker stats` CLI |
-| Konsole | For the "Exec Shell" feature |
-| `notify-send` | For desktop notifications (optional) |
-| Linux | Any distro running Plasma 6 |
+| Docker | Any version with the `docker ps` / `docker stats` CLI |
+| Konsole | Required for the Exec Shell feature |
+| `notify-send` | Required for desktop notifications (optional) |
+| Linux | Any distribution running Plasma 6 |
 
 Tested on:
 
 - **EndeavourOS (Arch Linux)** — Plasma 6.6.5, Wayland
-- Should work on KDE Neon, Fedora Kinoite, openSUSE Tumbleweed, NixOS, etc.
+- Expected to work on KDE Neon, Fedora Kinoite, openSUSE Tumbleweed, NixOS, and similar
 
-## 🚀 Installation
+## Installation
 
-### Option 1: Manual Install
+### Manual install
 
 ```bash
 # Clone the repository
@@ -129,80 +131,94 @@ cp -r opsdash-plasmoid ~/.local/share/plasma/plasmoids/com.ops.dash
 # Rebuild Plasma's service cache
 kbuildsycoca6
 
-# Restart Plasma shell
+# Restart the Plasma shell
 systemctl --user restart plasma-plasmashell.service
 ```
 
-### Add to Panel
+### Add to the panel
 
-1. **Right-click** on your Plasma panel
-2. Select **"Add Widgets…"**
-3. Search for **"OpsDash"**
-4. **Drag** it to your panel
+1. Right-click your Plasma panel
+2. Select **Add Widgets…**
+3. Search for **OpsDash**
+4. Drag it onto your panel
 
-## ⚙️ Configuration
+## Configuration
 
-Right-click the widget → **Configure OpsDash…**
+Right-click the widget and choose **Configure OpsDash…**.
 
-The settings are properly split into 3 intuitive tabs: **General**, **Behavior**, and **Appearance**. Scroll bars are fully supported!
+Settings are split across three tabs: **General**, **Behavior**, and **Appearance** (described above). The dialog supports scrolling.
 
-## 🛠️ How It Works
+## How it works
 
 ### Architecture
 
-```
+The widget polls the Docker CLI on a configurable timer and parses the results into its UI:
+
+```text
 Timer (configurable interval)
-  │
-  ├─► docker -H <host> ps -a --format '{{.Names}}|{{.State}}|{{.Status}}|{{.Ports}}|{{.Labels}}'
-  │     └─► Container list with Compose projects, states, uptime
-  │
-  ├─► docker -H <host> stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|...'
-  │     └─► Resource usage, thresholds evaluation for alerts
-  │
-  ├─► echo "$(docker -H <host> images -q | wc -l)|..."
-  │     └─► System overview
-  │
-  └─► docker -H <host> images --format '{{.ID}}|{{.Repository}}|{{.Tag}}|{{.Size}}'
-        └─► Populates the Images Tab
+  |
+  +-> docker -H <host> ps -a --format '{{.Names}}|{{.State}}|{{.Status}}|{{.Ports}}|{{.Labels}}'
+  |     +-> Container list with Compose projects, states, and uptime
+  |
+  +-> docker -H <host> stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|...'
+  |     +-> Resource usage, and threshold evaluation for alerts
+  |
+  +-> echo "$(docker -H <host> images -q | wc -l)|..."
+  |     +-> System overview
+  |
+  +-> docker -H <host> images --format '{{.ID}}|{{.Repository}}|{{.Tag}}|{{.Size}}'
+        +-> Populates the Images tab
 ```
 
-### Technical Stack
+### Technical stack
 
 | Component | Technology |
 |---|---|
 | Root element | `PlasmoidItem` (Plasma 6 applet) |
 | Command execution | `Plasma5Support.DataSource` (engine: `"executable"`) |
-| UI framework | `Kirigami` + `PlasmaComponents3` + `QQC2.ScrollView` |
-| Configuration | Multi-tab UI via `config.qml` + `main.xml` |
+| UI framework | `Kirigami`, `PlasmaComponents3`, and `QQC2.ScrollView` |
+| Configuration | Multi-tab UI via `config.qml` and `main.xml` |
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
-### Widget shows "Unsupported widget"
+### The widget shows "Unsupported widget"
 
-This widget requires Plasma **6.0+**. It does NOT work on Plasma 5.
+OpsDash requires Plasma **6.0+**. It does not run on Plasma 5.
 
-### Container count stays at 0
+### The container count stays at 0
 
-Ensure your user can run Docker without sudo: `docker ps -q | wc -l`.
-If it fails, add your user to the `docker` group: `sudo usermod -aG docker $USER`.
+Make sure your user can run Docker without sudo:
 
-### Changes not reflected after editing files
+```bash
+docker ps -q | wc -l
+```
 
-Always restart Plasma after modifying widget files:
-`systemctl --user restart plasma-plasmashell.service`
+If that fails, add your user to the `docker` group:
 
-## 🗺️ Roadmap
+```bash
+sudo usermod -aG docker $USER
+```
+
+### Changes are not reflected after editing files
+
+Restart Plasma after modifying widget files:
+
+```bash
+systemctl --user restart plasma-plasmashell.service
+```
+
+## Roadmap
 
 - [x] Docker Compose project grouping
-- [x] Log preview (inline logs inside popup)
+- [x] Inline log preview inside the popup
 - [x] Multiple Docker host support (remote SSH)
-- [ ] Custom color themes / presets
+- [ ] Custom color themes and presets
 - [ ] Health check status (healthy/unhealthy)
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! Fork, branch, commit, and open a PR.
+Contributions are welcome. Fork the repository, create a branch, commit your changes, and open a pull request.
 
-## 📝 License
+## License
 
-This project is licensed under the **GNU General Public License v3.0** — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU General Public License v3.0**. See the [LICENSE](LICENSE) file for details.

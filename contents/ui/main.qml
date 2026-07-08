@@ -49,7 +49,7 @@ PlasmoidItem {
         return Kirigami.Theme.positiveTextColor;
     }
 
-    // ── Feature 9: Warning badge ────────────────────────────────────────
+    // ── Warning badge ────────────────────────────────────────
     readonly property bool hasWarning: {
         var total = systemOverview.totalContainers;
         if (total === 0) return false;
@@ -199,7 +199,7 @@ PlasmoidItem {
     }
 
     // ═════════════════════════════════════════════════════════════════════
-    // PANEL STRIP (with Feature 9: warning badge)
+    // PANEL STRIP (with warning badge)
     // ═════════════════════════════════════════════════════════════════════
     compactRepresentation: MouseArea {
         hoverEnabled: true
@@ -240,7 +240,7 @@ PlasmoidItem {
                     color: root.panelColor
                 }
             }
-            // Feature 9: warning badge
+            // warning badge
             Kirigami.Icon {
                 visible: root.hasWarning
                 source: "dialog-warning"
@@ -661,7 +661,7 @@ PlasmoidItem {
                                 PlasmaComponents3.Label{text:cst;font:Kirigami.Theme.smallFont;opacity:0.35;Layout.fillWidth:true;elide:Text.ElideRight}
                             }
 
-                            // Row 3: Port info (Feature 12)
+                            // Row 3: Port info
                             RowLayout {
                                 Layout.fillWidth:true;spacing:4;visible:ports.length>0
                                 Item{Layout.preferredWidth:4}Item{Layout.preferredWidth:Kirigami.Units.iconSizes.small}Item{Layout.preferredWidth:Kirigami.Units.smallSpacing}

@@ -22,12 +22,14 @@
 ## ✨ Features
 
 ### Panel
+
 - **Live container count** — shows `X/Y` (running/total) with Docker whale icon
 - **Status-aware colors** — green (all running), orange (partial), red (none running)
 - **Warning badge** — ⚠️ icon appears when some containers are stopped
 - **Rich tooltip** — hover to see aggregate stats: `3/5 up · CPU 12.4% · Mem 1.2 GiB`
 
 ### Popup
+
 - **Two-Tab Layout** — Switch seamlessly between **Containers** and **Images**.
 - **Images Tab** — View all Docker images with tags, IDs, and sizes. Quick delete button included.
 - **Status card** — Docker engine status, aggregate CPU/memory bars, image count.
@@ -44,6 +46,7 @@
 - **Search & Sort** — filter containers by name in real-time. Sort by Name, State, CPU, or Memory.
 
 ### Configuration (Tabbed KCM Layout)
+
 - **General**:
   - **Docker Host**: Manage a remote VPS or server seamlessly via `ssh://user@ip`. Leave empty for localhost.
   - Refresh interval (1–60 seconds).
@@ -108,6 +111,7 @@
 | Linux | Any distro running Plasma 6 |
 
 Tested on:
+
 - **EndeavourOS (Arch Linux)** — Plasma 6.6.5, Wayland
 - Should work on KDE Neon, Fedora Kinoite, openSUSE Tumbleweed, NixOS, etc.
 
@@ -140,7 +144,7 @@ systemctl --user restart plasma-plasmashell.service
 
 Right-click the widget → **Configure OpsDash…**
 
-With Phase 6, the settings are properly split into 3 intuitive tabs: **General**, **Behavior**, and **Appearance**. Scroll bars are fully supported!
+The settings are properly split into 3 intuitive tabs: **General**, **Behavior**, and **Appearance**. Scroll bars are fully supported!
 
 ## 🛠️ How It Works
 
@@ -174,13 +178,16 @@ Timer (configurable interval)
 ## 🔧 Troubleshooting
 
 ### Widget shows "Unsupported widget"
+
 This widget requires Plasma **6.0+**. It does NOT work on Plasma 5.
 
 ### Container count stays at 0
+
 Ensure your user can run Docker without sudo: `docker ps -q | wc -l`.
 If it fails, add your user to the `docker` group: `sudo usermod -aG docker $USER`.
 
 ### Changes not reflected after editing files
+
 Always restart Plasma after modifying widget files:
 `systemctl --user restart plasma-plasmashell.service`
 
@@ -193,7 +200,9 @@ Always restart Plasma after modifying widget files:
 - [ ] Health check status (healthy/unhealthy)
 
 ## 🤝 Contributing
+
 Contributions are welcome! Fork, branch, commit, and open a PR.
 
 ## 📝 License
+
 This project is licensed under the **GNU General Public License v3.0** — see the [LICENSE](LICENSE) file for details.
